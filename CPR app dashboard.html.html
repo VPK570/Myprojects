@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Medical Profile with Vital Signs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        
+        .pulse-dot {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .ecg-line {
+            stroke-dasharray: 1000;
+            stroke-dashoffset: 1000;
+            animation: draw 2s linear infinite;
+        }
+        
+        @keyframes draw {
+            to { stroke-dashoffset: 0; }
+        }
+        
+        .vital-reading {
+            transition: all 0.3s ease;
+        }
+        
+        .sensor-active {
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { box-shadow: 0 0 5px rgba(34, 197, 94, 0.5); }
+            to { box-shadow: 0 0 20px rgba(34, 197, 94, 0.8); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-red-50 to-pink-100 min-h-screen p-4">
+    <div class="max-w-6xl mx-auto">
+        <!-- Emergency Header -->
+        <div class="bg-red-600 text-white rounded-t-2xl p-4 mb-0">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                        <span class="text-red-600 font-bold text-lg">!</span>
+                    </div>
+                    <h1 class="text-xl font-bold">EMERGENCY MEDICAL PROFILE</h1>
+                </div>
+                <div class="text-sm">
+                    <p>In Case of Emergency</p>
+                    <p class="font-bold">Call 911</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Real-time Vital Signs Dashboard -->
+        <div class="bg-white rounded-b-2xl shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-2xl font-bold text-gray-800">Live Vital Signs</h2>
+                <div class="flex items-center gap-2">
+                    <div class="pulse-dot w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span class="text-sm text-green-600 font-medium">Sensors Active</span>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <!-- Heart Rate -->
+                <div class="bg-red-50 border-2 border-red-200 rounded-lg p-4 sensor-active">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-red-700">Heart Rate</h3>
+                        <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-red-600" id="heartRate">72</div>
+                    <div class="text-xs text-red-500">BPM</div>
+                </div>
+
+                <!-- Blood Pressure -->
+                <div class="bg-blue-50 border-2 border-blue-200 rounded-lg p-4 sensor-active">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-blue-700">Blood Pressure</h3>
+                        <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-blue-600" id="bloodPressure">120/80</div>
+                    <div class="text-xs text-blue-500">mmHg</div>
+                </div>
+
+                <!-- Oxygen Saturation -->
+                <div class="bg-green-50 border-2 border-green-200 rounded-lg p-4 sensor-active">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-green-700">SpO2</h3>
+                        <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.293l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-green-600" id="oxygenSat">98</div>
+                    <div class="text-xs text-green-500">%</div>
+                </div>
+
+                <!-- Temperature -->
+                <div class="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4 sensor-active">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-sm font-medium text-yellow-700">Temperature</h3>
+                        <svg class="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 2a4 4 0 00-4 4v7a6 6 0 1012 0V6a4 4 0 00-4-4zM8 6a2 2 0 114 0v6.5a4 4 0 11-4 0V6z"/>
+                        </svg>
+                    </div>
+                    <div class="text-2xl font-bold text-yellow-600" id="temperature">98.6</div>
+                    <div class="text-xs text-yellow-500">°F</div>
+                </div>
+            </div>
+
+
+
+
+        </div>
+
+        <!-- Main Profile Card -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-6">
+            <div class="flex flex-col md:flex-row items-center gap-8">
+                <!-- Profile Picture -->
+                <div class="relative">
+                    <div class="w-32 h-32 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                        SM
+                    </div>
+                    <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center">
+                        <svg class="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                        </svg>
+                    </div>
+                </div>
+                
+                <!-- Basic Info -->
+                <div class="text-center md:text-left flex-1">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-2">Sarah </h2>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <p class="text-gray-500">Age</p>
+                            <p class="font-semibold text-gray-800">34 years old</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Blood Type</p>
+                            <p class="font-semibold text-red-600">O+</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Height</p>
+                            <p class="font-semibold text-gray-800">5'6" (168 cm)</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-500">Weight</p>
+                            <p class="font-semibold text-gray-800">145 lbs (66 kg)</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Emergency Contact -->
+                <div class="bg-red-50 rounded-lg p-4 border-2 border-red-200">
+                    <h3 class="font-bold text-red-800 mb-2">Emergency Contact</h3>
+                    <p class="text-sm text-red-700">John  (Husband)</p>
+                    <p class="font-bold text-red-800">+1 (555) 987-6543</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Medical Information Grid -->
+        <div class="grid md:grid-cols-2 gap-6">
+            <!-- Medical Conditions -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15 13.586V12a1 1 0 011-1z"/>
+                    </svg>
+                    Medical Conditions
+                </h2>
+                <div class="space-y-3">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
+                        <h3 class="font-semibold text-yellow-800">Type 2 Diabetes</h3>
+                        <p class="text-sm text-yellow-700">Diagnosed 2019 - Well controlled</p>
+                    </div>
+                    <div class="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                        <h3 class="font-semibold text-blue-800">Mild Hypertension</h3>
+                        <p class="text-sm text-blue-700">Managed with medication</p>
+                    </div>
+                    <div class="bg-green-50 border-l-4 border-green-400 p-3 rounded">
+                        <h3 class="font-semibold text-green-800">Seasonal Allergies</h3>
+                        <p class="text-sm text-green-700">Spring/Fall - Pollen sensitivity</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Medications -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM7 9a1 1 0 000 2h6a1 1 0 100-2H7z"/>
+                    </svg>
+                    Current Medications
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">Metformin</h3>
+                            <p class="text-sm text-gray-600">500mg - Twice daily</p>
+                        </div>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Active</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">Lisinopril</h3>
+                            <p class="text-sm text-gray-600">10mg - Once daily</p>
+                        </div>
+                        <span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs font-medium">Active</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <h3 class="font-semibold text-gray-800">Claritin</h3>
+                            <p class="text-sm text-gray-600">10mg - As needed</p>
+                        </div>
+                        <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium">PRN</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cardiac History -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"/>
+                    </svg>
+                    Cardiac History
+                </h2>
+                <div class="space-y-4">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/>
+                            </svg>
+                            <h3 class="font-semibold text-green-800">No History of Cardiac Arrest</h3>
+                        </div>
+                        <p class="text-sm text-green-700">No previous episodes of cardiac arrest or major cardiac events</p>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-blue-800 mb-2">Last Cardiac Screening</h3>
+                        <p class="text-sm text-blue-700">EKG: Normal (March 2024)</p>
+                        <p class="text-sm text-blue-700">Stress Test: Normal (January 2024)</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CPR Training -->
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/>
+                    </svg>
+                    CPR Training Status
+                </h2>
+                <div class="space-y-4">
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="font-semibold text-green-800">CPR Certified</h3>
+                            <span class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">Current</span>
+                        </div>
+                        <div class="text-sm text-green-700 space-y-1">
+                            <p><strong>Certification:</strong> Red Cross CPR/AED</p>
+                            <p><strong>Issued:</strong> February 2024</p>
+                            <p><strong>Expires:</strong> February 2026</p>
+                            <p><strong>Level:</strong> Adult, Child & Infant CPR</p>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <h3 class="font-semibold text-blue-800 mb-2">Additional Training</h3>
+                        <div class="text-sm text-blue-700 space-y-1">
+                            <p>✓ AED (Automated External Defibrillator)</p>
+                            <p>✓ Basic First Aid</p>
+                            <p>✓ Choking Response</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Emergency Response Map -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                    <svg class="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z"/>
+                    </svg>
+                    Nearby Emergency Responders
+                </h2>
+                <div class="flex items-center gap-2">
+                    <div class="pulse-dot w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span class="text-sm text-blue-600 font-medium">Live Tracking</span>
+                </div>
+            </div>
+
+            <!-- Map Legend -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
+                <div class="flex items-center gap-2 bg-red-50 p-2 rounded-lg">
+                    <div class="w-4 h-4 bg-red-500 rounded-full"></div>
+                    <span class="text-sm font-medium text-red-700">Paramedics</span>
+                </div>
+                <div class="flex items-center gap-2 bg-blue-50 p-2 rounded-lg">
+                    <div class="w-4 h-4 bg-blue-500 rounded-full"></div>
+                    <span class="text-sm font-medium text-blue-700">Doctors</span>
+                </div>
+                <div class="flex items-center gap-2 bg-green-50 p-2 rounded-lg">
+                    <div class="w-4 h-4 bg-green-500 rounded-full"></div>
+                    <span class="text-sm font-medium text-green-700">CPR Volunteers</span>
+                </div>
+                <div class="flex items-center gap-2 bg-orange-50 p-2 rounded-lg">
+                    <div class="w-4 h-4 bg-orange-500 rounded-full"></div>
+                    <span class="text-sm font-medium text-orange-700">AED Locations</span>
+                </div>
+                <div class="flex items-center gap-2 bg-purple-50 p-2 rounded-lg">
+                    <div class="w-4 h-4 bg-purple-500 rounded-full"></div>
+                    <span class="text-sm font-medium text-purple-700">Your Location</span>
+                </div>
+            </div>
+
+            <!-- Interactive Map -->
+            <div class="relative bg-gray-100 rounded-lg h-96 overflow-hidden">
+                <svg id="emergencyMap" class="w-full h-full" viewBox="0 0 800 400">
+                    <!-- Map Background -->
+                    <rect width="800" height="400" fill="#f3f4f6"/>
+                    
+                    <!-- Streets -->
+                    <g stroke="#d1d5db" stroke-width="2" fill="none">
+                        <line x1="0" y1="100" x2="800" y2="100"/>
+                        <line x1="0" y1="200" x2="800" y2="200"/>
+                        <line x1="0" y1="300" x2="800" y2="300"/>
+                        <line x1="150" y1="0" x2="150" y2="400"/>
+                        <line x1="300" y1="0" x2="300" y2="400"/>
+                        <line x1="450" y1="0" x2="450" y2="400"/>
+                        <line x1="600" y1="0" x2="600" y2="400"/>
+                    </g>
+                    
+                    <!-- Buildings -->
+                    <g fill="#e5e7eb" stroke="#9ca3af" stroke-width="1">
+                        <rect x="50" y="50" width="80" height="40" rx="4"/>
+                        <rect x="200" y="120" width="60" height="60" rx="4"/>
+                        <rect x="350" y="80" width="70" height="50" rx="4"/>
+                        <rect x="500" y="140" width="90" height="40" rx="4"/>
+                        <rect x="650" y="60" width="80" height="70" rx="4"/>
+                        <rect x="100" y="220" width="100" height="60" rx="4"/>
+                        <rect x="320" y="250" width="80" height="80" rx="4"/>
+                        <rect x="520" y="240" width="70" height="50" rx="4"/>
+                    </g>
+                    
+                    <!-- Your Location (Center) -->
+                    <g id="userLocation">
+                        <circle cx="400" cy="200" r="12" fill="#8b5cf6" stroke="white" stroke-width="3"/>
+                        <circle cx="400" cy="200" r="6" fill="white"/>
+                        <text x="400" y="225" text-anchor="middle" class="text-xs font-bold fill-purple-700">YOU</text>
+                    </g>
+                    
+                    <!-- Paramedics (Red) -->
+                    <g class="responder-group" data-type="paramedic">
+                        <circle cx="320" cy="150" r="8" fill="#ef4444" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="320" y="140" text-anchor="middle" class="text-xs font-medium fill-red-700">P1</text>
+                        <text x="320" y="170" text-anchor="middle" class="text-xs fill-red-600">0.8mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="paramedic">
+                        <circle cx="520" cy="120" r="8" fill="#ef4444" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="520" y="110" text-anchor="middle" class="text-xs font-medium fill-red-700">P2</text>
+                        <text x="520" y="140" text-anchor="middle" class="text-xs fill-red-600">1.2mi</text>
+                    </g>
+                    
+                    <!-- Doctors (Blue) -->
+                    <g class="responder-group" data-type="doctor">
+                        <circle cx="250" cy="280" r="8" fill="#3b82f6" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="250" y="270" text-anchor="middle" class="text-xs font-medium fill-blue-700">D1</text>
+                        <text x="250" y="300" text-anchor="middle" class="text-xs fill-blue-600">0.5mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="doctor">
+                        <circle cx="580" cy="280" r="8" fill="#3b82f6" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="580" y="270" text-anchor="middle" class="text-xs font-medium fill-blue-700">D2</text>
+                        <text x="580" y="300" text-anchor="middle" class="text-xs fill-blue-600">1.1mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="doctor">
+                        <circle cx="180" cy="120" r="8" fill="#3b82f6" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="180" y="110" text-anchor="middle" class="text-xs font-medium fill-blue-700">D3</text>
+                        <text x="180" y="140" text-anchor="middle" class="text-xs fill-blue-600">1.5mi</text>
+                    </g>
+                    
+                    <!-- CPR Volunteers (Green) -->
+                    <g class="responder-group" data-type="volunteer">
+                        <circle cx="350" cy="320" r="8" fill="#10b981" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="350" y="310" text-anchor="middle" class="text-xs font-medium fill-green-700">Mike R.</text>
+                        <text x="350" y="340" text-anchor="middle" class="text-xs fill-green-600">0.3mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="volunteer">
+                        <circle cx="480" cy="320" r="8" fill="#10b981" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="480" y="310" text-anchor="middle" class="text-xs font-medium fill-green-700">Sarah K.</text>
+                        <text x="480" y="340" text-anchor="middle" class="text-xs fill-green-600">0.6mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="volunteer">
+                        <circle cx="120" cy="320" r="8" fill="#10b981" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="120" y="310" text-anchor="middle" class="text-xs font-medium fill-green-700">Tom B.</text>
+                        <text x="120" y="340" text-anchor="middle" class="text-xs fill-green-600">0.9mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="volunteer">
+                        <circle cx="650" cy="180" r="8" fill="#10b981" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="650" y="170" text-anchor="middle" class="text-xs font-medium fill-green-700">Lisa M.</text>
+                        <text x="650" y="200" text-anchor="middle" class="text-xs fill-green-600">1.3mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="volunteer">
+                        <circle cx="80" cy="180" r="8" fill="#10b981" stroke="white" stroke-width="2" class="responder-dot"/>
+                        <text x="80" y="170" text-anchor="middle" class="text-xs font-medium fill-green-700">Alex P.</text>
+                        <text x="80" y="200" text-anchor="middle" class="text-xs fill-green-600">1.7mi</text>
+                    </g>
+                    
+                    <!-- AED Locations (Orange) -->
+                    <g class="responder-group" data-type="aed">
+                        <rect x="295" y="145" width="10" height="10" fill="#f97316" stroke="white" stroke-width="2" rx="2" class="responder-dot"/>
+                        <text x="300" y="135" text-anchor="middle" class="text-xs font-medium fill-orange-700">Mall</text>
+                        <text x="300" y="170" text-anchor="middle" class="text-xs fill-orange-600">0.2mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="aed">
+                        <rect x="195" y="115" width="10" height="10" fill="#f97316" stroke="white" stroke-width="2" rx="2" class="responder-dot"/>
+                        <text x="200" y="105" text-anchor="middle" class="text-xs font-medium fill-orange-700">Gym</text>
+                        <text x="200" y="135" text-anchor="middle" class="text-xs fill-orange-600">0.4mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="aed">
+                        <rect x="545" y="235" width="10" height="10" fill="#f97316" stroke="white" stroke-width="2" rx="2" class="responder-dot"/>
+                        <text x="550" y="225" text-anchor="middle" class="text-xs font-medium fill-orange-700">School</text>
+                        <text x="550" y="255" text-anchor="middle" class="text-xs fill-orange-600">0.7mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="aed">
+                        <rect x="645" y="55" width="10" height="10" fill="#f97316" stroke="white" stroke-width="2" rx="2" class="responder-dot"/>
+                        <text x="650" y="45" text-anchor="middle" class="text-xs font-medium fill-orange-700">Office</text>
+                        <text x="650" y="75" text-anchor="middle" class="text-xs fill-orange-600">1.0mi</text>
+                    </g>
+                    
+                    <g class="responder-group" data-type="aed">
+                        <rect x="95" y="215" width="10" height="10" fill="#f97316" stroke="white" stroke-width="2" rx="2" class="responder-dot"/>
+                        <text x="100" y="205" text-anchor="middle" class="text-xs font-medium fill-orange-700">Library</text>
+                        <text x="100" y="235" text-anchor="middle" class="text-xs fill-orange-600">1.2mi</text>
+                    </g>
+                    
+                    <!-- Distance Circles -->
+                    <circle cx="400" cy="200" r="50" fill="none" stroke="#10b981" stroke-width="1" stroke-dasharray="5,5" opacity="0.5"/>
+                    <circle cx="400" cy="200" r="100" fill="none" stroke="#f59e0b" stroke-width="1" stroke-dasharray="5,5" opacity="0.5"/>
+                    <circle cx="400" cy="200" r="150" fill="none" stroke="#ef4444" stroke-width="1" stroke-dasharray="5,5" opacity="0.5"/>
+                </svg>
+                
+                <!-- Map Controls -->
+                <div class="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-2">
+                    <button id="zoomIn" class="block w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded mb-1 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
+                        </svg>
+                    </button>
+                    <button id="zoomOut" class="block w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Responder List -->
+            <div class="mt-4 grid md:grid-cols-4 gap-4">
+                <div class="bg-red-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-red-800 mb-2 flex items-center gap-2">
+                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                        Paramedics (2)
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-red-700">Unit P1 - Ambulance</span>
+                            <span class="font-medium text-red-800">0.8 mi</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-red-700">Unit P2 - Ambulance</span>
+                            <span class="font-medium text-red-800">1.2 mi</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-blue-800 mb-2 flex items-center gap-2">
+                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                        Doctors (3)
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-blue-700">Doctor D1 - Cardiologist</span>
+                            <span class="font-medium text-blue-800">0.5 mi</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-blue-700">Doctor D2 - ER</span>
+                            <span class="font-medium text-blue-800">1.1 mi</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-blue-700">Doctor D3 - General</span>
+                            <span class="font-medium text-blue-800">1.5 mi</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-green-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-green-800 mb-2 flex items-center gap-2">
+                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                        CPR Volunteers (5)
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-green-700">Mike R. - CPR Certified</span>
+                            <span class="font-medium text-green-800">0.3 mi</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-green-700">Sarah K. - First Aid</span>
+                            <span class="font-medium text-green-800">0.6 mi</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-green-700">+3 more volunteers</span>
+                            <span class="font-medium text-green-800">0.9-1.7 mi</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-orange-50 rounded-lg p-4">
+                    <h3 class="font-semibold text-orange-800 mb-2 flex items-center gap-2">
+                        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        AED Devices (5)
+                    </h3>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-orange-700">Shopping Mall</span>
+                            <span class="font-medium text-orange-800">0.2 mi</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-orange-700">Fitness Center</span>
+                            <span class="font-medium text-orange-800">0.4 mi</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-orange-700">+3 more locations</span>
+                            <span class="font-medium text-orange-800">0.7-1.2 mi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-6 flex flex-wrap gap-4 justify-center">
+            <button id="updateBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+                </svg>
+                Update Profile
+            </button>
+            <button id="exportBtn" class="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"/>
+                </svg>
+                Export Vital Data
+            </button>
+            <button id="doctorAccessBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/>
+                </svg>
+                Doctor Access
+            </button>
+            <button id="alertBtn" class="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"/>
+                </svg>
+                Emergency Alert
+            </button>
+            <button id="callNearestBtn" class="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-medium transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                </svg>
+                Call Nearest Help
+            </button>
+        </div>
+    </div>
+
+    <!-- Doctor Access Modal -->
+    <div id="doctorModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="bg-purple-600 text-white p-6 rounded-t-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"/>
+                        </svg>
+                        <h2 class="text-2xl font-bold">Detailed Medical Information</h2>
+                    </div>
+                    <button id="closeDoctorModal" class="text-white hover:text-gray-200 transition-colors">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"/>
+                        </svg>
+                    </button>
+                </div>
+                <p class="text-purple-100 mt-2">Comprehensive medical profile for healthcare professionals</p>
+            </div>
+            
+            <div class="p-6 space-y-6">
+                <!-- Patient Summary -->
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Patient Summary</h3>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm">
+                        <div><strong>Patient ID:</strong> SM-2024-001</div>
+                        <div><strong>Date of Birth:</strong> March 15, 1990</div>
+                        <div><strong>Insurance:</strong> Blue Cross Blue Shield</div>
+                        <div><strong>Primary Care Physician:</strong> Dr. Jennifer Adams</div>
+                        <div><strong>Last Visit:</strong> March 8, 2024</div>
+                        <div><strong>Next Appointment:</strong> June 15, 2024</div>
+                    </div>
+                </div>
+
+                <!-- Detailed Medical History -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white border rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Complete Medical History</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="border-l-4 border-yellow-400 pl-3">
+                                <h4 class="font-semibold text-yellow-800">Type 2 Diabetes Mellitus (E11.9)</h4>
+                                <p class="text-gray-600">Diagnosed: January 2019</p>
+                                <p class="text-gray-600">HbA1c: 6.8% (Last: March 2024)</p>
+                                <p class="text-gray-600">Complications: None documented</p>
+                            </div>
+                            <div class="border-l-4 border-blue-400 pl-3">
+                                <h4 class="font-semibold text-blue-800">Essential Hypertension (I10)</h4>
+                                <p class="text-gray-600">Diagnosed: June 2020</p>
+                                <p class="text-gray-600">Stage 1 - Well controlled</p>
+                                <p class="text-gray-600">Target BP: <130/80 mmHg</p>
+                            </div>
+                            <div class="border-l-4 border-green-400 pl-3">
+                                <h4 class="font-semibold text-green-800">Allergic Rhinitis (J30.1)</h4>
+                                <p class="text-gray-600">Seasonal - Spring/Fall</p>
+                                <p class="text-gray-600">Triggers: Tree pollen, grass</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white border rounded-lg p-4">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Surgical History</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="bg-gray-50 p-3 rounded">
+                                <h4 class="font-semibold">Appendectomy</h4>
+                                <p class="text-gray-600">Date: August 2018</p>
+                                <p class="text-gray-600">Laparoscopic - No complications</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <h4 class="font-semibold">Wisdom Teeth Extraction</h4>
+                                <p class="text-gray-600">Date: May 2016</p>
+                                <p class="text-gray-600">All four teeth - Routine</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Medications & Dosages -->
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Current Medications & Dosages</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="space-y-3">
+                            <div class="bg-blue-50 p-3 rounded border-l-4 border-blue-400">
+                                <h4 class="font-semibold text-blue-800">Metformin HCl</h4>
+                                <p class="text-sm text-blue-700">500mg twice daily with meals</p>
+                                <p class="text-xs text-blue-600">Prescribed: Dr. Adams | Refills: 3 remaining</p>
+                                <p class="text-xs text-blue-600">Last filled: March 1, 2024</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded border-l-4 border-green-400">
+                                <h4 class="font-semibold text-green-800">Lisinopril</h4>
+                                <p class="text-sm text-green-700">10mg once daily in morning</p>
+                                <p class="text-xs text-green-600">Prescribed: Dr. Adams | Refills: 5 remaining</p>
+                                <p class="text-xs text-green-600">Last filled: February 15, 2024</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3">
+                            <div class="bg-yellow-50 p-3 rounded border-l-4 border-yellow-400">
+                                <h4 class="font-semibold text-yellow-800">Loratadine (Claritin)</h4>
+                                <p class="text-sm text-yellow-700">10mg as needed for allergies</p>
+                                <p class="text-xs text-yellow-600">OTC - Patient self-manages</p>
+                                <p class="text-xs text-yellow-600">Seasonal use only</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded border-l-4 border-purple-400">
+                                <h4 class="font-semibold text-purple-800">Multivitamin</h4>
+                                <p class="text-sm text-purple-700">One daily with breakfast</p>
+                                <p class="text-xs text-purple-600">OTC supplement</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Allergies & Adverse Reactions -->
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Allergies & Adverse Reactions</h3>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-medium text-red-700 mb-2">Drug Allergies</h4>
+                            <div class="bg-red-50 p-3 rounded border border-red-200">
+                                <p class="font-semibold text-red-800">Penicillin</p>
+                                <p class="text-sm text-red-700">Reaction: Hives, swelling</p>
+                                <p class="text-xs text-red-600">Severity: Moderate | Verified: Yes</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-orange-700 mb-2">Environmental Allergies</h4>
+                            <div class="space-y-2">
+                                <div class="bg-orange-50 p-2 rounded text-sm">
+                                    <span class="font-medium">Tree Pollen:</span> Moderate reaction
+                                </div>
+                                <div class="bg-orange-50 p-2 rounded text-sm">
+                                    <span class="font-medium">Grass Pollen:</span> Mild reaction
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Lab Results -->
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Recent Laboratory Results</h3>
+                    <div class="grid md:grid-cols-3 gap-4 text-sm">
+                        <div class="bg-green-50 p-3 rounded">
+                            <h4 class="font-semibold text-green-800">HbA1c</h4>
+                            <p class="text-2xl font-bold text-green-700">6.8%</p>
+                            <p class="text-xs text-green-600">March 8, 2024 | Target: <7.0%</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded">
+                            <h4 class="font-semibold text-blue-800">Total Cholesterol</h4>
+                            <p class="text-2xl font-bold text-blue-700">185</p>
+                            <p class="text-xs text-blue-600">March 8, 2024 | mg/dL</p>
+                        </div>
+                        <div class="bg-purple-50 p-3 rounded">
+                            <h4 class="font-semibold text-purple-800">eGFR</h4>
+                            <p class="text-2xl font-bold text-purple-700">>60</p>
+                            <p class="text-xs text-purple-600">March 8, 2024 | Normal</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Family History -->
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Family Medical History</h3>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <h4 class="font-medium text-gray-700 mb-2">Maternal Side</h4>
+                            <ul class="space-y-1 text-gray-600">
+                                <li>• Mother: Type 2 Diabetes (age 58), Hypertension</li>
+                                <li>• Maternal Grandmother: Stroke (age 72)</li>
+                                <li>• Maternal Grandfather: Heart disease (deceased age 68)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-medium text-gray-700 mb-2">Paternal Side</h4>
+                            <ul class="space-y-1 text-gray-600">
+                                <li>• Father: Healthy (age 62)</li>
+                                <li>• Paternal Grandmother: Arthritis (age 85)</li>
+                                <li>• Paternal Grandfather: Cancer (deceased age 75)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contacts -->
+                <div class="bg-white border rounded-lg p-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Emergency Contacts</h3>
+                    <div class="grid md:grid-cols-2 gap-4 text-sm">
+                        <div class="bg-red-50 p-3 rounded">
+                            <h4 class="font-semibold text-red-800">Primary Contact</h4>
+                            <p><strong>John Martinez</strong> (Husband)</p>
+                            <p>Phone: +91 8248970893</p>
+                            <p>Work: +91 8248970893</p>
+                        </div>
+                        <div class="bg-blue-50 p-3 rounded">
+                            <h4 class="font-semibold text-blue-800">Secondary Contact</h4>
+                            <p><strong>Maria Rodriguez</strong> (Sister)</p>
+                            <p>Phone: +91 8248970893</p>
+                            <p>Relationship: Next of Kin</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+
+        // Update vital signs with realistic variations
+        function updateVitalSigns() {
+            const heartRateElement = document.getElementById('heartRate');
+            const bloodPressureElement = document.getElementById('bloodPressure');
+            const oxygenSatElement = document.getElementById('oxygenSat');
+            const temperatureElement = document.getElementById('temperature');
+            
+            // Heart rate variation (68-76 BPM)
+            const baseHeartRate = 72;
+            const heartRate = baseHeartRate + Math.sin(Date.now() / 10000) * 4 + Math.random() * 2 - 1;
+            heartRateElement.textContent = Math.round(heartRate);
+            
+            // Blood pressure slight variation
+            const systolic = 120 + Math.round(Math.random() * 6 - 3);
+            const diastolic = 80 + Math.round(Math.random() * 4 - 2);
+            bloodPressureElement.textContent = `${systolic}/${diastolic}`;
+            
+            // Oxygen saturation (97-99%)
+            const oxygen = 98 + Math.round(Math.random() * 2 - 1);
+            oxygenSatElement.textContent = oxygen;
+            
+            // Temperature (98.4-98.8°F)
+            const temp = 98.6 + (Math.random() * 0.4 - 0.2);
+            temperatureElement.textContent = temp.toFixed(1);
+        }
+
+        // Initialize everything
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start real-time updates
+            setInterval(updateVitalSigns, 5000); // Update vitals every 5 seconds
+            
+            // Button functionality
+            document.getElementById('updateBtn').addEventListener('click', function() {
+                alert('Profile update form would open here! You can modify your medical information and sensor settings. 📝');
+            });
+
+            document.getElementById('exportBtn').addEventListener('click', function() {
+                alert('Exporting vital signs data... This would save your heart rhythm and health monitoring data for medical analysis! 📊');
+            });
+
+            document.getElementById('doctorAccessBtn').addEventListener('click', function() {
+                document.getElementById('doctorModal').classList.remove('hidden');
+            });
+
+            document.getElementById('closeDoctorModal').addEventListener('click', function() {
+                document.getElementById('doctorModal').classList.add('hidden');
+            });
+
+            // Close modal when clicking outside
+            document.getElementById('doctorModal').addEventListener('click', function(e) {
+                if (e.target === this) {
+                    this.classList.add('hidden');
+                }
+            });
+
+            document.getElementById('alertBtn').addEventListener('click', function() {
+                alert('🚨 EMERGENCY ALERT ACTIVATED! This would immediately notify emergency contacts and medical services with your current vital signs and location!');
+            });
+
+            document.getElementById('callNearestBtn').addEventListener('click', function() {
+                alert('📞 Calling Mike R. (CPR Volunteer) - 0.3 miles away! Connection established. Help is on the way!');
+            });
+
+            // Map interactions
+            document.getElementById('zoomIn').addEventListener('click', function() {
+                alert('🔍 Zooming in to show more detail of nearby responders...');
+            });
+
+            document.getElementById('zoomOut').addEventListener('click', function() {
+                alert('🔍 Zooming out to show wider area coverage...');
+            });
+
+            // Add click interactions to responder dots
+            const responderDots = document.querySelectorAll('.responder-dot');
+            responderDots.forEach(dot => {
+                dot.style.cursor = 'pointer';
+                dot.addEventListener('click', function(e) {
+                    const group = e.target.closest('.responder-group');
+                    const type = group.getAttribute('data-type');
+                    const text = group.querySelector('text').textContent;
+                    
+                    if (type === 'paramedic') {
+                        alert(`🚑 Paramedic ${text} - Ambulance unit equipped with advanced life support. ETA: 3-5 minutes.`);
+                    } else if (type === 'doctor') {
+                        alert(`👨‍⚕️ Doctor ${text} - Medical professional available for consultation. Can provide immediate guidance.`);
+                    } else if (type === 'volunteer') {
+                        alert(`🆘 ${text} - CPR certified volunteer ready to assist. Can provide immediate first aid.`);
+                    } else if (type === 'aed') {
+                        alert(`⚡ AED at ${text} - Automated External Defibrillator available 24/7. Device last checked and operational.`);
+                    }
+                });
+            });
+
+            // Animate responder dots
+            setInterval(() => {
+                responderDots.forEach(dot => {
+                    dot.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                        dot.style.transform = 'scale(1)';
+                    }, 300);
+                });
+            }, 3000);
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97ac6d9524757f8b',t:'MTc1NzE0NTU3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
